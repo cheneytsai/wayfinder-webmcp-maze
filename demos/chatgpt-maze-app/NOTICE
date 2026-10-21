@@ -1,0 +1,17 @@
+Wayfinder — MCP Apps adaptation of Chrome WebMCP Maze
+
+Derived from GoogleChromeLabs/webmcp-tools, demos/webmcp-maze
+https://github.com/GoogleChromeLabs/webmcp-tools/tree/24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb/demos/webmcp-maze
+Upstream commit: 24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb
+Copyright 2026 Google LLC. Apache-2.0.
+
+Copied unmodified: MazeBoard.ts, Player.ts, types/index.ts,
+RecursiveBacktracker.ts, MazeGenerator.ts, ItemPlacer.ts (reference only),
+LookTool.ts, MoveTool.ts, PickupTool.ts, DropTool.ts, UseTool.ts,
+and six upstream engine test files.
+
+Changes: replaced PixiJS Game orchestration with a headless Game adapter;
+added bounded configurable grids, a guaranteed sequential item-placement
+algorithm, persistence, visible-only snapshots, HTTP and MCP transports,
+React rendering, reusable UI components, and browser WebMCP registration.
+The original arbitrary-code eval tool is not included.

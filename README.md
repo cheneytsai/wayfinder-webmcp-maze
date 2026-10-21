@@ -1,3 +1,7 @@
+## ChatGPT MCP Apps maze
+
+This fork adds **[Wayfinder Maze](demos/chatgpt-maze-app)**: a configurable React MCP App, component library, SQLite persistence, browser WebMCP bridge, and automated tests. See its README for running and connecting it to ChatGPT. The original demo is retained below.
+
 # Collection of WebMCP tools
 
 This repository contains a suite of developer utilities and demos designed to support the adoption of the WebMCP API.
