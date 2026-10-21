@@ -1,0 +1,15 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/* Compact MCP App view; the original canvas and activity feed are preserved. */
+html[data-mcp-app], html[data-mcp-app] body, html[data-mcp-app] #app { height: 560px; min-height: 560px; }
+html[data-mcp-app] .shell { height: 560px; grid-template: 48px minmax(0,1fr) 140px / minmax(0,1fr); grid-template-areas: "top" "stage" "side"; }
+html[data-mcp-app] .top { padding: 0 12px; }
+html[data-mcp-app] .brand { min-width: 0; }
+html[data-mcp-app] .top-mid, html[data-mcp-app] .top-right, html[data-mcp-app] .rail, html[data-mcp-app] .optbar, html[data-mcp-app] .selbar, html[data-mcp-app] .side > .card:not(.feed-card) { display: none !important; }
+html[data-mcp-app] .side { padding: 0; min-width: 0; overflow: hidden; }
+html[data-mcp-app] .feed-card { height: 140px; border-radius: 0; }
+html[data-mcp-app] .canvas-wrap { pointer-events: none; }
+html[data-mcp-app] .blank .small { max-width: 250px; margin-inline: auto; }
+html[data-mcp-app] .stage > [role=alert] { position: absolute; inset: 30px; color: #ffb6af; background: #15141f; padding: 20px; z-index: 20; }

@@ -4,3 +4,4 @@ test-results/
 playwright-report/
 .runtime/
 dist-widget/
+dist-pixel-widget/

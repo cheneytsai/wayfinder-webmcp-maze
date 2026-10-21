@@ -7,3 +7,12 @@ Modifications: configurable dimensions and viewport fitting; asynchronous
 WebMCP registration cleanup; shared bootstrap; MCP Apps widget and launch
 server; local test runtime, documentation, and tests. No React or backend
 gameplay is used.
+
+Chrome Pixel Art Studio
+Original source: https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/pixel-art-studio
+Upstream commit: 24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb
+Copyright 2026 Google LLC. Licensed under Apache-2.0.
+
+Modifications: MCP Apps launch wrapper and endpoint, compact widget layout,
+manual artwork controls disabled, bundled Latin fonts, native iframe tests.
+Original drawing tools and handlers are preserved.

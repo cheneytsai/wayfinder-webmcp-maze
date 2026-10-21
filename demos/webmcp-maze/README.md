@@ -1,3 +1,31 @@
+# Chrome Pixel Art Studio — ChatGPT MCP App
+
+The original [GoogleChromeLabs Pixel Art Studio](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/pixel-art-studio), packaged as a plain TypeScript MCP App. The server exposes only `open_studio({width, height})`; all 25 drawing, palette, layer, inspection, and undo tools register inside the iframe once at startup. Edits keep the same canvas. The widget preserves the original canvas, fonts, and activity feed, with manual editing controls and keyboard mutations disabled.
+
+## Try Pixel Art Studio locally
+
+Run the build and local runtime commands below. Add a custom ChatGPT plugin with the runtime's public origin followed by **`/pixel/mcp`**, and choose no authentication. The maze uses the separate `/mcp` endpoint. This temporary tunnel must remain running; restarting it can change the public URL.
+
+In ChatGPT Desktop, enable **Chrome Pixel Art Studio** and ask:
+
+> Open a 32-by-32 pixel canvas and draw a tiny sunset with mountains using the widget's WebMCP tools. Inspect the pixels to verify it.
+
+Then:
+
+> Add a yellow moon to the same canvas, undo that change, then redo it.
+
+If needed, expand the widget with **Open app in tab** so Desktop can discover its iframe tools. The first call should be `open_studio`; later calls should be native tools such as `get_canvas_info`, `draw_svg`, `draw_rect`, `get_region_pixels`, and `undo_pixel_art_action`. The activity feed records those calls. Reopening the studio creates a new canvas and is not needed for edits. Artwork is ephemeral and lives in the widget.
+
+## Pixel verification
+
+The production bundle passes a real native WebMCP test inside an MCP Apps host fixture at 400px and 800px widths, including drawing, pixel inspection, undo/redo, resize, fixed tool names, and canvas identity under a strict CSP. The host messaging is simulated; WebMCP is native Chromium. These tests do not establish a live ChatGPT Desktop conversation result.
+
+The complete project currently passes **103 unit tests and 11 browser tests**, plus both application builds. Live Desktop discovery remains a separate verification step after connecting the plugin.
+
+The original maze implementation and setup are retained below.
+
+---
+
 # Chrome Maze WebMCP — ChatGPT MCP App
 
 The original [Google Chrome WebMCP maze](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/webmcp-maze), packaged as a ChatGPT MCP App. No React, component library, database, or server-side gameplay.
@@ -65,7 +93,7 @@ For the standalone development page only, run `npm run dev` and open `http://loc
 
 ## Current verification record
 
-- Build, 102 unit tests, and 9 browser tests pass.
+- Build, 103 unit tests, and 11 browser tests pass across both demos.
 - The production iframe passes native WebMCP discovery and movement under a CSP that forbids unsafe-eval.
 - The installed plugin rendered a 3×4 maze in [this ChatGPT test conversation](https://chatgpt.com/c/6ad92946-fc7c-83e8-bd61-b8958f88c4ec).
 - The web conversation could not discover iframe gameplay tools. The announcement targets ChatGPT Desktop; a live Desktop solve remains to be completed after enabling the plugin and expanding the app in that conversation. Automated iframe tests do not replace this check.

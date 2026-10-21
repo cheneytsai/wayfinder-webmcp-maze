@@ -1,6 +1,6 @@
-## Chrome maze MCP App
+## Chrome WebMCP MCP Apps
 
-This fork wraps the original [Chrome WebMCP maze](demos/webmcp-maze) as a ChatGPT MCP App, without React. Its single MCP launch tool accepts rows and columns; the original gameplay tools run inside the widget through native WebMCP. See the maze README for local setup and verification status.
+This fork packages the original Chrome maze and Pixel Art Studio as ChatGPT MCP Apps, without React. Each exposes one MCP launch tool; the original application tools run inside the widget through native WebMCP. Pixel Art Studio has a fixed set of 25 tools and keeps edits in the same canvas. See the [MCP Apps README](demos/webmcp-maze/README.md) for local setup and verification status.
 
 # Collection of WebMCP tools
 

@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createMcpServer } from "./mcp.ts";
+import { createPixelMcpServer } from "./pixel.ts";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 const widgetHtml = () =>
@@ -23,12 +24,14 @@ const http = createServer(async (req, res) => {
       res.end(widgetHtml());
       return;
     }
-    if (url.pathname !== "/mcp") {
+    if (url.pathname !== "/mcp" && url.pathname !== "/pixel/mcp") {
       res.writeHead(404);
       res.end();
       return;
     }
-    const server = createMcpServer(widgetHtml, process.env.PUBLIC_ORIGIN);
+    const server = url.pathname === "/pixel/mcp"
+      ? createPixelMcpServer(() => readFileSync(resolve("dist-pixel-widget/widget.html"), "utf8"))
+      : createMcpServer(widgetHtml, process.env.PUBLIC_ORIGIN);
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
       enableJsonResponse: true,
