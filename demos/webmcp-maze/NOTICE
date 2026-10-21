@@ -3,5 +3,7 @@ Original source: https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demo
 Upstream commit: 24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb
 Copyright 2026 Google LLC. Licensed under Apache-2.0.
 
-Modifications: configurable maze dimensions in start_game;
-validation, local dev port, documentation, and tests.
+Modifications: configurable dimensions and viewport fitting; asynchronous
+WebMCP registration cleanup; shared bootstrap; MCP Apps widget and launch
+server; local test runtime, documentation, and tests. No React or backend
+gameplay is used.

@@ -1,0 +1,11 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/* Give the MCP Apps host a stable inline height before the canvas initializes. */
+html[data-mcp-app],
+html[data-mcp-app] body,
+html[data-mcp-app] #app {
+  height: 520px;
+  min-height: 520px;
+}

@@ -155,7 +155,14 @@ export class Renderer {
     const screenWidth = this.app.screen.width;
     const screenHeight = this.app.screen.height;
 
-    this.app.stage.x = (screenWidth - mazeWidth) / 2;
-    this.app.stage.y = (screenHeight - mazeHeight) / 2;
+    // Large configurable grids must also fit the inline MCP App viewport.
+    const scale = Math.min(
+      1,
+      (screenWidth - 32) / mazeWidth,
+      (screenHeight - 64) / mazeHeight,
+    );
+    this.app.stage.scale.set(Math.max(0.01, scale));
+    this.app.stage.x = (screenWidth - mazeWidth * scale) / 2;
+    this.app.stage.y = (screenHeight - mazeHeight * scale) / 2;
   }
 }

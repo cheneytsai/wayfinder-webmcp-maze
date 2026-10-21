@@ -1,6 +1,6 @@
-## Configurable Chrome WebMCP maze
+## Chrome maze MCP App
 
-This fork adds optional `rows` and `cols` to the original [Chrome maze](demos/webmcp-maze). Its title screen, PixiJS visuals, and gameplay remain unchanged. All game actions use browser WebMCP tools. See the maze README for local setup and tests.
+This fork wraps the original [Chrome WebMCP maze](demos/webmcp-maze) as a ChatGPT MCP App, without React. Its single MCP launch tool accepts rows and columns; the original gameplay tools run inside the widget through native WebMCP. See the maze README for local setup and verification status.
 
 # Collection of WebMCP tools
 

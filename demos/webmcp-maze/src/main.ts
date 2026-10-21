@@ -13,7 +13,7 @@ import { IntroState } from "./game/states/IntroState.ts";
  * Application entry point.
  * Initializes all subsystems and starts the game in the intro state.
  */
-async function main(): Promise<void> {
+export async function createGame(): Promise<Game> {
   const appContainer = document.getElementById("app")!;
 
   const game = new Game();
@@ -32,6 +32,9 @@ async function main(): Promise<void> {
 
   // Enter intro state
   game.setState(new IntroState(game));
+  return game;
 }
 
-main().catch(console.error);
+if (!document.documentElement.hasAttribute("data-mcp-app")) {
+  createGame().catch(console.error);
+}

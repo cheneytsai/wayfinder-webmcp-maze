@@ -35,7 +35,7 @@ export class ToolRegistry {
    * Referenced by `window.gameTools.executeTool` at call time.
    */
   private toolMap: Map<string, WebMCP.ModelContextTool> = new Map();
-  
+
   private toolController: AbortController | null = null;
 
   /**
@@ -46,9 +46,7 @@ export class ToolRegistry {
     this.supported = !!document.modelContext;
 
     if (!this.supported) {
-      console.warn(
-        "WebMCP (modelContext) is not available in this browser.",
-      );
+      console.warn("WebMCP (modelContext) is not available in this browser.");
       return;
     }
 
@@ -92,7 +90,6 @@ export class ToolRegistry {
     this.provideTools([createStartGameTool(this.game)]);
   }
 
-
   /**
    * Unregisters all current tools then registers the new batch.
    * Keeps `toolMap` in sync so `window.gameTools.executeTool` stays current.
@@ -103,7 +100,14 @@ export class ToolRegistry {
       this.toolController?.abort();
       this.toolController = new AbortController();
       for (const tool of tools) {
-        document.modelContext!.registerTool(tool, { signal: this.toolController.signal });
+        const signal = this.toolController.signal;
+        // Native registration is asynchronous. A rapid MCP Apps initialization can
+        // legitimately abort intro registrations before the browser finishes them.
+        void Promise.resolve(
+          document.modelContext!.registerTool(tool, { signal }),
+        ).catch((error) => {
+          if (!signal.aborted) throw error;
+        });
       }
     }
     this.toolMap.clear();
