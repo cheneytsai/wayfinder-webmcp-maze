@@ -1,21 +1,27 @@
-name: Verify maze app
+name: Verify configurable WebMCP maze
 on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demos/webmcp-maze
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: demos/webmcp-maze/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: browser-test-results
           path: |
-            playwright-report/
-            test-results/
+            demos/webmcp-maze/playwright-report/
+            demos/webmcp-maze/test-results/

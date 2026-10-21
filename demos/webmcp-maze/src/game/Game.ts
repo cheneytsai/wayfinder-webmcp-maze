@@ -13,6 +13,16 @@ import { ItemPlacer } from "../generation/ItemPlacer.ts";
 import { MAZE_DEFAULT_ROWS, MAZE_DEFAULT_COLS } from "../types/index.ts";
 import { GameplayState } from "./states/GameplayState.ts";
 
+/** Allowed dimensions for the configurable maze (modified from upstream). */
+export function isValidMazeDimension(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 2 &&
+    value <= 40
+  );
+}
+
 /**
  * Top-level game orchestrator.
  * Owns the state machine, maze data, player, and references to subsystems
@@ -66,6 +76,11 @@ export class Game {
     rows: number = MAZE_DEFAULT_ROWS,
     cols: number = MAZE_DEFAULT_COLS,
   ): void {
+    if (!isValidMazeDimension(rows) || !isValidMazeDimension(cols)) {
+      throw new RangeError(
+        "Rows and columns must be whole numbers from 2 to 40.",
+      );
+    }
     this.board = new MazeBoard(rows, cols);
     const generator = new RecursiveBacktracker();
     generator.generate(this.board);

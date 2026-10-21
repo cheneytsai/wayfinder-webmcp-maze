@@ -1,0 +1,7 @@
+Chrome WebMCP Maze
+Original source: https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/webmcp-maze
+Upstream commit: 24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb
+Copyright 2026 Google LLC. Licensed under Apache-2.0.
+
+Modifications: configurable maze dimensions in start_game;
+validation, local dev port, documentation, and tests.

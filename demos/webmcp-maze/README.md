@@ -1,66 +1,44 @@
-# webmcp-maze
+# Chrome WebMCP Maze — configurable size
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/webmcp-maze/
+This is [GoogleChromeLabs/webmcp-tools/demos/webmcp-maze](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/webmcp-maze), based on upstream commit `24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb`.
 
-A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input. The game registers tools via the [WebMCP](https://webmachinelearning.github.io/webmcp/) browser API so the agent can interact with the game world.
+The change is intentionally small: `start_game` accepts optional `rows` and `cols` (whole numbers from 2 to 40, each defaulting to 10). The title screen stays unchanged; only WebMCP tools mutate game state. The original PixiJS rendering, fog, items, maze generator, and gameplay tools are preserved. No React or backend is required.
 
-To try this demo, check the [requirements](../README.md#requirements).
+## Run locally
 
-## How It Works
+Use Node.js 22.12+ or 24+:
 
-The game exposes tools to the browser's built-in AI agent through `document.modelContext`. The agent can:
-
-- **start_game** — begin a new maze
-- **look** — inspect the player's surroundings (walls, open paths, exit location)
-- **move** — move the player in a cardinal direction
-- **pickup** — pick up a collectible item (key or dynamite) from the current cell
-- **drop** — drop the currently held item
-- **use** — use the held item on a blocker in a specific direction (e.g., use a key on a door)
-
-(An **eval_code** tool is also available when the `?eval_tool` URL parameter is present for debugging purposes.)
-
-The player starts in a randomly generated maze and must reach the exit by instructing the AI agent through natural language prompts.
-
-## Tech Stack
-
-- [Vite](https://vitejs.dev/) 7 + TypeScript (strict mode)
-- [PixiJS](https://pixijs.com/) for rendering
-- [Node.js](https://nodejs.org/) and npm for tooling
-
-## Getting Started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) installed
-- A browser that meets the WebMCP [requirements](../README.md#requirements)
-
-### Install and Run
-
-```bash
-npm install
+```sh
+npm ci
 npm run dev
 ```
 
-### Other Commands
+Open **http://localhost:8788/** as a top-level page in a browser with WebMCP agent support. Keep the dev server running. The Codex in-app browser was verified with the page's WebMCP capability. For standalone Chrome, use a current version supporting WebMCP and enable `chrome://flags/#enable-webmcp-testing` if the API is unavailable; an agent or tool inspector is also needed to invoke the tools. Localhost is a trustworthy context.
 
-```bash
-npm run build          # typecheck + production build
-npm test               # run all tests
-npx prettier --write . # format all files
+Creating and playing a maze requires `document.modelContext` and a WebMCP-capable agent. This version does not use the previous Wayfinder ChatGPT plugin or a public tunnel. It is a browser WebMCP demo, not an MCP App iframe.
+
+## Ask the browser agent
+
+- “Start an 8-row, 12-column maze.”
+- “Look around, then move one cell in an open direction.”
+- “Solve this maze. Explore with look and move, and use keys or dynamite when needed.”
+- After winning: “Start another maze with 20 rows and 20 columns.”
+
+The agent first calls `start_game({rows: 8, cols: 12})`. During gameplay the page exposes the original `look`, `move`, `pickup`, `drop`, and `use` tools. After escaping, `start_game` becomes available again. Every call updates the same page and canvas.
+
+To verify real WebMCP use, inspect the agent's browser tool calls: they should target the page's `start_game`, `look`, or `move` tools at `http://localhost:8788`, rather than the old Wayfinder connector. A WebMCP inspector can also list and invoke the tools. The automated browser tests use native `document.modelContext.getTools()` and `executeTool()` with no polyfill or backend.
+
+## Tests
+
+```sh
+npm test                  # upstream tests plus dimension validation
+npm run build             # strict TypeScript and production build
+npx playwright install chromium
+npm run test:e2e           # native Chrome WebMCP browser tests
 ```
 
-## Project Structure
-
-```
-src/
-  main.ts                # entry point
-  game/                  # game orchestrator, state machine, player, maze data
-  generation/            # maze generation algorithms (recursive backtracker)
-  rendering/             # PixiJS rendering (maze view, player view, camera)
-  webmcp/                # WebMCP tool registry and individual tool definitions
-  types/                 # shared types, enums, constants
-```
+The browser tests enable WebMCP and cover tool discovery/lifecycle, defaults, rectangular grids, both dimension limits, the absence of manual controls, solving, replay, and canvas identity.
 
 ## License
 
-[Apache-2.0](LICENSE)
+[Apache-2.0](LICENSE). Original source copyright 2026 Google LLC. Configurable size support and its tests were added to this copy. Files outside the size feature retain the upstream implementation.
