@@ -31,7 +31,10 @@ export function createHttpServer({service=new MazeService(process.env.DB_PATH),h
         const mcp=createMcpServer(service,html);
         const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});
         res.on('close',()=>{void transport.close();void mcp.close();});
-        await mcp.connect(transport);await transport.handleRequest(req,res);return;
+        await mcp.connect(transport);
+        const payload=req.method==='POST'?await body(req):undefined;
+        if(process.env.MCP_TRACE==='1')console.info('MCP',req.method,(payload as {method?:string}|undefined)?.method??'');
+        await transport.handleRequest(req,res,payload);return;
       }
       if(req.method==='POST'&&url.pathname.startsWith('/api/tools/')){
         if(!req.headers['content-type']?.includes('application/json'))return json(415,{error:'Use application/json'});
@@ -41,7 +44,7 @@ export function createHttpServer({service=new MazeService(process.env.DB_PATH),h
         return json(200,await service.call(name,await body(req)));
       }
       json(404,{error:'Not found'});
-    }catch(error){if(!res.headersSent)json(400,{error:error instanceof Error?error.message:'Invalid request'});else res.end();}
+    }catch(error){if(process.env.MCP_TRACE==='1')console.error('MCP request failed:',error instanceof Error?error.message:'Unknown error');if(!res.headersSent)json(400,{error:error instanceof Error?error.message:'Invalid request'});else res.end();}
   });
   return {server,service};
 }

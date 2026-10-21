@@ -9,3 +9,7 @@ The maze generator is Chrome's iterative recursive backtracker, which produces a
 The reference test agent constructs its map solely from `look`/action observations. It explores reachable frontiers, routes back through known cells, fetches matching collectibles when a blocker gates remaining territory, and stops at the exit. The app never exposes that algorithm as a tool: ChatGPT remains responsible for its own planning.
 
 Host simulation verifies the app-side protocol independently of a ChatGPT account. A real ChatGPT installation and prompt still provide the final host-specific acceptance check. Native browser WebMCP is a preview API; tests inject its registration surface to test our adapter, not Chrome's own implementation.
+
+## Acceptance evidence
+
+The app was installed as **Wayfinder Maze** in ChatGPT on 2026-10-21. ChatGPT created a 3×4 maze and reached the exit in five tool-driven moves. The host initially showed a generic display error; its Try again action successfully opened the MCP Apps sandbox with the completed maze and matching state. This first-load host failure is a limitation to monitor beyond the simulated-host tests.
