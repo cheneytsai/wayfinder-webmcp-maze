@@ -1,3 +1,12 @@
+## Both apps are ready for Desktop testing
+
+| Installed plugin | MCP endpoint path | Prompt |
+| --- | --- | --- |
+| Chrome Maze WebMCP | `/mcp` | Create a 3-row, 4-column maze. Use the existing widget’s look tool, then take one valid step. |
+| Chrome Pixel Art Studio | `/pixel/mcp` | Open a 32×32 canvas. Use its app tools to draw a yellow square, then inspect the pixels. |
+
+Both endpoints run on the same local server (port 8789) and temporary HTTPS tunnel. Keep the local runtime running while testing. The code and automated host tests are verified; live Desktop tool calls remain unverified. The old Wayfinder plugins are obsolete.
+
 # Chrome Pixel Art Studio — ChatGPT MCP App
 
 The original [GoogleChromeLabs Pixel Art Studio](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/pixel-art-studio), packaged as a plain TypeScript MCP App. The server exposes only `open_studio({width, height})`; all 25 drawing, palette, layer, inspection, and undo tools are exposed by the iframe through the MCP Apps tools bridge. Native WebMCP registration is also preserved. Both routes execute the same handlers against the same canvas. Edits keep the same canvas. The widget preserves the original canvas, fonts, and activity feed, with manual editing controls and keyboard mutations disabled.
@@ -20,7 +29,7 @@ The widget advertises app tool capabilities during initialization and handles ho
 
 The production bundle passes native WebMCP and MCP Apps host-message tests at 400px and 800px widths, including tools/list, tools/call, drawing, pixel inspection, undo/redo, resize, fixed tool names, and canvas identity under a strict CSP. An additional test disables native WebMCP and verifies bridge-based drawing and undo. SDK AppBridge tests verify discovery, initialization gating, input validation, and shared-handler execution. The browser host is a fixture; these tests do not establish a live ChatGPT conversation result.
 
-The complete project currently passes **104 unit tests and 12 browser tests**, plus both application builds. Live ChatGPT discovery remains a separate verification step. The earlier v1 widget lacked app-side MCP Apps tool capabilities and handlers; v1.1 adds them, retaining native WebMCP.
+The complete project currently passes **104 unit tests and 14 browser tests**, plus both application builds. Live ChatGPT discovery remains a separate verification step. The earlier v1 widget lacked app-side MCP Apps tool capabilities and handlers; v1.1 adds them, retaining native WebMCP.
 
 Live web retest (October 22, 2026): the v1.1 widget initializes and reports `App tools: 25 · Native WebMCP: 0`. ChatGPT receives its context update, but the web conversation still does not expose the app tools to the agent. No drawing call succeeded there. The bridge is verified in SDK/iframe host tests; ChatGPT Desktop remains unverified. This change is not proof of native WebMCP support in ChatGPT.
 
@@ -36,10 +45,10 @@ The original [Google Chrome WebMCP maze](https://github.com/GoogleChromeLabs/web
 
 1. ChatGPT calls the MCP server's only tool, `start_game({rows: 8, cols: 12})`.
 2. The server returns the original PixiJS maze as an MCP Apps iframe. The MCP Apps tool-result notification initializes its requested grid.
-3. The iframe registers the original `look`, `move`, `pickup`, `drop`, and `use` tools with `document.modelContext`.
-4. Codex in ChatGPT Desktop discovers those WebMCP tools and uses them directly inside the same widget. Moves do not return new widgets or run on the server.
+3. The iframe exposes six fixed app tools through the MCP Apps bridge: `start_game`, `look`, `move`, `pickup`, `drop`, and `use`. Native WebMCP registers those same handlers when available.
+4. All gameplay runs in the same canvas. The server only launches the widget. App-side `start_game` is guarded during an active game and permits replay after escaping. App tools stay registered through game-over and replay.
 
-There are no manual game controls. Dimensions are integers from 2 to 40, each defaulting to 10. Large grids scale to the inline viewport. After escaping, the iframe exposes `start_game` for replay.
+There are no manual game controls. Dimensions are integers from 2 to 40, each defaulting to 10. Large grids scale to the inline viewport. The iframe keeps `start_game` registered for replay after escaping.
 
 WebMCP support for MCP Apps in ChatGPT Desktop was [announced October 20, 2026](https://x.com/ndmccormack/status/2112701653098930296). This integration targets that desktop capability. The standalone website is retained for development, but opening it is not the plugin test.
 
@@ -76,9 +85,9 @@ For a larger grid:
 
 > Create an 8-row, 12-column maze. Look around, then take one valid step.
 
-In Desktop, expand the maze using **Open app in tab** before asking the agent to play if the tools are not listed. The desktop MCP Apps browser interface exposes expanded app tabs, rather than inline-only widgets.
+The v3 maze advertises app tool capabilities during the MCP Apps handshake. No manual start button or gameplay controls are provided. Look for the tool status and last-call text in the widget. Host support for calling those app tools must still be verified in ChatGPT Desktop.
 
-The initial call is the plugin's MCP `start_game`. Subsequent calls must be the iframe's WebMCP tools. Check that movement and the move counter update in the original widget, with no additional widget per move. Closing or reloading the widget loses this deliberately ephemeral maze.
+The initial call is the plugin's server MCP `start_game`. Subsequent calls should be the iframe's app tools (or native WebMCP tools when the host supports them). Check that movement and the move counter update in the original widget, with no additional widget per move. Closing or reloading the widget loses this deliberately ephemeral maze.
 
 ## Verification
 
@@ -95,13 +104,13 @@ For the standalone development page only, run `npm run dev` and open `http://loc
 
 ## Current verification record
 
-- Build, 103 unit tests, and 11 browser tests pass across both demos.
+- Build, 104 unit tests, and 14 browser tests pass across both demos.
 - The production iframe passes native WebMCP discovery and movement under a CSP that forbids unsafe-eval.
 - The installed plugin rendered a 3×4 maze in [this ChatGPT test conversation](https://chatgpt.com/c/6ad92946-fc7c-83e8-bd61-b8958f88c4ec).
-- The web conversation could not discover iframe gameplay tools. The announcement targets ChatGPT Desktop; a live Desktop solve remains to be completed after enabling the plugin and expanding the app in that conversation. Automated iframe tests do not replace this check.
+- The earlier v2 web conversation could not discover iframe gameplay tools. The v3 port adds the app-side bridge and fixed tool surface, verified by solving and replaying through host messages with native WebMCP enabled and disabled. The announcement targets ChatGPT Desktop; a live Desktop solve remains to be completed after enabling the plugin and expanding the app in that conversation. Automated iframe tests do not replace this check.
 
 ## Source and license
 
-Based on upstream commit `24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb`. Original game mechanics and neon PixiJS visuals are preserved. Changes add size validation, viewport fitting, asynchronous registration cleanup, shared bootstrap, and the small MCP Apps wrapper/server.
+Based on upstream commit `24cb5cb0d4b6609aac5426f90a5de6ddb847bdeb`. Original game mechanics and neon PixiJS visuals are preserved. Changes add size validation, viewport fitting, asynchronous registration cleanup, shared bootstrap, a fixed embedded tool surface with game-state guards, and the MCP Apps bridge/wrapper/server.
 
 [Apache-2.0](LICENSE). Copyright 2026 Google LLC; see [NOTICE](NOTICE).

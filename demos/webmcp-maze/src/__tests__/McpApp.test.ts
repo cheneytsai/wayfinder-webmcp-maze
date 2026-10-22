@@ -17,7 +17,7 @@ describe("MCP App launch contract", () => {
       const { tools } = await client.listTools();
       expect(tools.map((tool) => tool.name)).toEqual(["start_game"]);
       expect(tools[0]._meta).toMatchObject({
-        ui: { resourceUri: "ui://chrome-webmcp-maze/v2.html" },
+        ui: { resourceUri: "ui://chrome-webmcp-maze/v3.html" },
       });
       const result = await client.callTool({
         name: "start_game",
@@ -49,7 +49,7 @@ describe("MCP App launch contract", () => {
         ).toBe(true);
       }
       const resource = await client.readResource({
-        uri: "ui://chrome-webmcp-maze/v2.html",
+        uri: "ui://chrome-webmcp-maze/v3.html",
       });
       expect(resource.contents[0]).toMatchObject({
         mimeType: "text/html;profile=mcp-app",

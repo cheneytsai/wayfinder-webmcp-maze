@@ -10,12 +10,14 @@ import { createPickupTool } from "./tools/PickupTool.ts";
 import { createDropTool } from "./tools/DropTool.ts";
 import { createUseTool } from "./tools/UseTool.ts";
 import { createStartGameTool } from "./tools/StartGameTool.ts";
+import { createMazeAppTools } from "./MazeAppTools.ts";
 import { createEvalTool } from "./tools/EvalTool.ts";
 
 /**
  * Manages the lifecycle of WebMCP tools registered with `document.modelContext`.
  *
- * Different sets of tools are registered depending on the current game state:
+ * Embedded MCP Apps keep six guarded tools registered throughout their lifetime.
+ * The standalone demo registers different sets depending on the current state:
  * - **Intro / GameOver**: only `start_game`
  * - **Gameplay**: `move`, `look`, `pickup`, `drop`, `use`
  *   and optionally `eval_code` when the `?eval_tool` URL parameter is present.
@@ -38,6 +40,11 @@ export class ToolRegistry {
 
   private toolController: AbortController | null = null;
 
+  private readonly fixedAppTools = document.documentElement.hasAttribute("data-mcp-app");
+
+  /** The exact handlers shared by native WebMCP and the MCP Apps bridge. */
+  getTools(): WebMCP.ModelContextTool[] { return [...this.toolMap.values()]; }
+
   /**
    * @param game - The game orchestrator instance.
    */
@@ -47,7 +54,6 @@ export class ToolRegistry {
 
     if (!this.supported) {
       console.warn("WebMCP (modelContext) is not available in this browser.");
-      return;
     }
 
     this.installGameTools();
@@ -96,6 +102,10 @@ export class ToolRegistry {
    * @param tools - The tools to register.
    */
   private provideTools(tools: WebMCP.ModelContextTool[]): void {
+    if (this.fixedAppTools) {
+      if (this.toolMap.size) return;
+      tools = createMazeAppTools(this.game);
+    }
     if (this.supported) {
       this.toolController?.abort();
       this.toolController = new AbortController();
@@ -106,7 +116,7 @@ export class ToolRegistry {
         void Promise.resolve(
           document.modelContext!.registerTool(tool, { signal }),
         ).catch((error) => {
-          if (!signal.aborted) throw error;
+          if (!signal.aborted) console.error("Native maze tool registration failed", tool.name, error);
         });
       }
     }

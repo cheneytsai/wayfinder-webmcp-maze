@@ -19,3 +19,7 @@ Original drawing tools and handlers are preserved.
 
 Pixel Art Studio v1.1 adds app-side MCP Apps tool discovery and calls, sharing
 the original WebMCP handlers, schema validation, readiness gating, and bridge tests.
+
+Maze v3 adds the shared app-side tool bridge, a fixed six-tool embedded
+surface, readiness and game-state guards, status text, and host solve/replay tests.
+The standalone maze retains the original state-dependent native tool lifecycle.

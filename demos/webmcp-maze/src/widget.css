@@ -9,3 +9,6 @@ html[data-mcp-app] #app {
   height: 520px;
   min-height: 520px;
 }
+
+#maze-tools-status { position: absolute; bottom: 8px; left: 12px; right: 12px; display: flex; justify-content: space-between; gap: 8px; font: 10px monospace; color: #a8a3b5; z-index: 30; pointer-events: none; }
+html[data-mcp-app] #app > [role="alert"] { position: absolute; inset: 30px; padding: 20px; background: #15141f; color: #ffb6af; z-index: 40; }
