@@ -4,8 +4,8 @@ Two original [GoogleChromeLabs WebMCP demos](https://github.com/GoogleChromeLabs
 
 | Installed plugin | Endpoint | Current version | WebMCP tools |
 | --- | --- | --- | --- |
-| Chrome Maze WebMCP | `/mcp` | 5.0.1 | Six fixed tools: `start_game`, `look`, `move`, `pickup`, `drop`, `use` |
-| Chrome Pixel Art Studio | `/pixel/mcp` | 3.0.0 | Original 25 drawing, palette, layer, history, and inspection tools |
+| Chrome Maze WebMCP | `/mcp` | 5.0.2 | Six fixed tools: `start_game`, `look`, `move`, `pickup`, `drop`, `use` |
+| Chrome Pixel Art Studio | `/pixel/mcp` | 3.0.1 | Original 25 drawing, palette, layer, history, and inspection tools |
 
 ## How it works
 
@@ -23,6 +23,8 @@ The intended WebMCP integration is described in [ext-apps PR #798](https://githu
 The production widgets keep the released ext-apps 2.0.3 SDK for the UI handshake. The experimental PR relay and polyfill are vendored **only as test fixtures**, pinned to commit `efcc19c377770f64d4844485bb2be73a6c4b813c`. Installing a different SDK in this project cannot update ChatGPT's host.
 
 The widget status reports registrations as `WebMCP tools: 6/6` or `25/25`. Registration does **not** prove that ChatGPT has discovered or called them. Live ChatGPT Desktop agent calls remain unverified. Earlier web tests could open widgets but could not call their tools. Do not treat an opening call or a registration count as an end-to-end success.
+
+Both resources request `_meta.ui.permissions.tools: {}` on their resource descriptors and returned contents, following [ext-apps PR #691](https://github.com/modelcontextprotocol/ext-apps/pull/691). This is proposed metadata rather than a released guarantee: the host must recognize it and delegate `allow="tools"` through its iframe chain. The relay tests derive that delegation from the actual MCP resource response rather than granting it unconditionally.
 
 ## Inspecting native WebMCP in DevTools
 

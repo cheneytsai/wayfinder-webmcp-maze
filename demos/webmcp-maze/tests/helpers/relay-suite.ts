@@ -5,6 +5,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { createMcpServer } from "../../server/mcp";
+import { createPixelMcpServer } from "../../server/pixel";
 import { injectModelContextPolyfill } from "../fixtures/pr798/model-context-host";
 
 // The reviewed PR source runs only in the host's same-origin sandbox proxy.
@@ -29,6 +33,30 @@ async function mount(page: Page, kind: "maze" | "pixel", polyfill: boolean) {
       : "dist-pixel-widget/widget.html",
     "utf8",
   );
+  // Exercise the actual server resource contract, not an unconditional test grant.
+  const server =
+    kind === "maze"
+      ? createMcpServer(() => html)
+      : createPixelMcpServer(() => html);
+  const client = new Client({ name: "permission-test", version: "1" });
+  const [serverTransport, clientTransport] =
+    InMemoryTransport.createLinkedPair();
+  await Promise.all([
+    server.connect(serverTransport),
+    client.connect(clientTransport),
+  ]);
+  let delegatedTools = false;
+  try {
+    const { tools } = await client.listTools();
+    const uri = (tools[0]._meta as any).ui.resourceUri;
+    const resource = (await client.readResource({ uri })).contents[0];
+    delegatedTools = !!(resource._meta as any)?.ui?.permissions?.tools;
+  } finally {
+    await client.close();
+    await server.close();
+  }
+  expect(delegatedTools).toBe(true);
+  const allow = delegatedTools ? "tools" : "";
   const initial =
     kind === "maze"
       ? { kind: "maze", rows: 2, cols: 2 }
@@ -64,7 +92,7 @@ async function mount(page: Page, kind: "maze" | "pixel", polyfill: boolean) {
       <script type="module">
       import {createModelContextRelay} from './model-context-host.js';
       const inner=document.createElement('iframe');
-      inner.setAttribute('sandbox','allow-scripts allow-same-origin');inner.setAttribute('allow','tools');
+      inner.setAttribute('sandbox','allow-scripts allow-same-origin');inner.setAttribute('allow','${allow}');
       inner.style='width:800px;height:560px';
       const relay=createModelContextRelay({getViewDocument:()=>inner.contentDocument,postToHost:m=>parent.postMessage(m,'http://localhost:8788')});
       addEventListener('message',event=>{
@@ -96,7 +124,7 @@ async function mount(page: Page, kind: "maze" | "pixel", polyfill: boolean) {
           event.source.postMessage({jsonrpc:'2.0',method:'ui/notifications/tool-result',params:{structuredContent:${JSON.stringify(initial)},content:[]}},event.origin);
         }else if(m.method==='ui/notifications/sandbox-tools-changed')window.toolChanges++;
         else if(m.id!==undefined&&m.method)event.source.postMessage({jsonrpc:'2.0',id:m.id,result:{}},event.origin);
-      });</script><iframe src='http://127.0.0.1:8788/relay/proxy' allow='tools' sandbox='allow-scripts allow-same-origin' style='width:840px;height:600px'></iframe></body></html>`,
+      });</script><iframe src='http://127.0.0.1:8788/relay/proxy' allow='${allow}' sandbox='allow-scripts allow-same-origin' style='width:840px;height:600px'></iframe></body></html>`,
     });
   });
   await page.goto("http://localhost:8788/relay/host");

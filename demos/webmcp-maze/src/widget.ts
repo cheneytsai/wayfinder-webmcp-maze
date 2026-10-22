@@ -7,7 +7,7 @@ import { App } from "@modelcontextprotocol/ext-apps";
 import { createGame } from "./main.ts";
 import "./widget.css";
 
-const app = new App({ name: "Chrome WebMCP Maze", version: "5.0.1" }, {});
+const app = new App({ name: "Chrome WebMCP Maze", version: "5.0.2" }, {});
 const game = await createGame();
 const tools = game.toolRegistry.getTools();
 let initialized = false;

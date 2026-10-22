@@ -10,12 +10,12 @@ import { createPixelMcpServer } from "../../server/pixel.ts";
 
 describe("MCP Apps only load widgets", () => {
   for (const [kind, launch, create, uri] of [
-    ["maze", "open_maze", createMcpServer, "ui://chrome-webmcp-maze/v6.html"],
+    ["maze", "open_maze", createMcpServer, "ui://chrome-webmcp-maze/v7.html"],
     [
       "pixel-art",
       "open_studio",
       createPixelMcpServer,
-      "ui://pixel-art-studio/v4.html",
+      "ui://pixel-art-studio/v5.html",
     ],
   ] as const) {
     it(`${launch} has no mutation parameters or state in its response`, async () => {
@@ -28,6 +28,12 @@ describe("MCP Apps only load widgets", () => {
         expect(tools.map((tool) => tool.name)).toEqual([launch]);
         expect(tools[0].inputSchema.properties).toEqual({});
         expect(tools[0]._meta).toMatchObject({ ui: { resourceUri: uri } });
+        const { resources } = await client.listResources();
+        expect(
+          resources.find((resource) => resource.uri === uri)?._meta,
+        ).toMatchObject({
+          ui: { permissions: { tools: {} } },
+        });
         // Even stale clients sending dimensions cannot configure app state.
         for (const input of [
           {},
@@ -42,6 +48,7 @@ describe("MCP Apps only load widgets", () => {
         expect((await client.readResource({ uri })).contents[0]).toMatchObject({
           mimeType: "text/html;profile=mcp-app",
           text: "<html>widget</html>",
+          _meta: { ui: { permissions: { tools: {} } } },
         });
       } finally {
         await client.close();

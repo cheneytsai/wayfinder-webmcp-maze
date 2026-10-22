@@ -7,7 +7,7 @@ import { registrationReady, tools } from "./main";
 import { registerTools } from "./webmcp";
 import "./widget.css";
 
-const app = new App({ name: "Pixel Art Studio", version: "3.0.0" }, {});
+const app = new App({ name: "Pixel Art Studio", version: "3.0.1" }, {});
 let initialized = false;
 app.ontoolresult = async (params) => {
   const input = params.structuredContent as Record<string, unknown> | undefined;
