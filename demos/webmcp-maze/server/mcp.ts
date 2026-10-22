@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
 
-const RESOURCE = "ui://chrome-webmcp-maze/v4.html";
+const RESOURCE = "ui://chrome-webmcp-maze/v5.html";
 export function createMcpServer(widgetHtml: () => string, origin?: string) {
   const mcp = new McpServer(
-    { name: "Chrome WebMCP Maze", version: "4.0.0" },
+    { name: "Chrome WebMCP Maze", version: "5.0.0" },
     {
       instructions:
-        "Start a maze only when requested. After start_game renders the widget, discover and use the live widget's WebMCP look, move, pickup, drop and use tools to play. The iframe registers six fixed tools with document.modelContext, including start_game for replay. The host must discover and relay them. Keep the same widget during gameplay. There are no manual game controls.",
+        "Open the app with open_maze. This MCP tool only loads the widget; it cannot create or configure a maze. Use the iframe WebMCP start_game with rows and cols to create a maze, then discover and use the live widget's WebMCP look, move, pickup, drop and use tools to play. The iframe registers six fixed tools with document.modelContext, including start_game for replay. The host must discover and relay them. Keep the same widget during gameplay. There are no manual game controls.",
     },
   );
   mcp.registerResource("maze-widget", RESOURCE, {}, async () => ({
@@ -38,17 +37,14 @@ export function createMcpServer(widgetHtml: () => string, origin?: string) {
     ],
   }));
   mcp.registerTool(
-    "start_game",
+    "open_maze",
     {
-      title: "Start a maze",
+      title: "Open Maze",
       description:
-        "Open the original Chrome maze with the requested grid size. Once open, use the widget's live gameplay tools to explore and solve it. Do not call this to continue an existing maze.",
-      inputSchema: {
-        rows: z.number().int().min(2).max(40).default(10),
-        cols: z.number().int().min(2).max(40).default(10),
-      },
+        "Load the original Chrome maze widget without starting a game. All maze creation, sizing, gameplay and replay must use the iframe WebMCP tools. Keep the same widget.",
+      inputSchema: {},
       annotations: {
-        readOnlyHint: false,
+        readOnlyHint: true,
         destructiveHint: false,
         openWorldHint: false,
       },
@@ -59,12 +55,12 @@ export function createMcpServer(widgetHtml: () => string, origin?: string) {
         "openai/toolInvocation/invoked": "Maze opened",
       },
     },
-    async ({ rows, cols }) => ({
-      structuredContent: { kind: "maze", rows, cols },
+    async () => ({
+      structuredContent: { kind: "maze" },
       content: [
         {
           type: "text",
-          text: `Opening a ${rows}-row, ${cols}-column maze. Use the live widget tools to play.`,
+          text: "Maze app opened. Call its WebMCP start_game to create the requested maze.",
         },
       ],
     }),

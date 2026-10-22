@@ -163,6 +163,12 @@ export function registerRelayTests(polyfill: boolean) {
       const names = (await list()).map((t: { name: string }) => t.name).sort();
       const canvas = await frame.locator("#cv").elementHandle();
       expect(await call("get_canvas_info")).toMatchObject({
+        width: 64,
+        height: 64,
+        can_undo: 0,
+      });
+      await call("set_canvas_size", { width: 32, height: 24 });
+      expect(await call("get_canvas_info")).toMatchObject({
         width: 32,
         height: 24,
       });
@@ -240,6 +246,14 @@ export function registerRelayTests(polyfill: boolean) {
         (await list()).map((t: { name: string }) => t.name).sort(),
       ).toEqual(names);
       const canvas = await frame.locator("canvas").elementHandle();
+      await expect(frame.locator("#intro-overlay")).toBeVisible();
+      expect(await call("look")).toMatchObject({ code: "NOT_READY" });
+      expect(await call("move", { direction: "north" })).toMatchObject({
+        code: "NOT_READY",
+      });
+      expect(await call("start_game", { rows: 2, cols: 2 })).toMatchObject({
+        mazeSize: { rows: 2, cols: 2 },
+      });
       expect(await call("look")).toMatchObject({
         mazeSize: { rows: 2, cols: 2 },
         moveCount: 0,

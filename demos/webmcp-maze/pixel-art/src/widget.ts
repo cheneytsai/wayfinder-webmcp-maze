@@ -7,7 +7,7 @@ import { registrationReady, tools } from "./main";
 import { registerTools } from "./webmcp";
 import "./widget.css";
 
-const app = new App({ name: "Pixel Art Studio", version: "2.0.0" }, {});
+const app = new App({ name: "Pixel Art Studio", version: "3.0.0" }, {});
 let initialized = false;
 app.ontoolresult = async (params) => {
   const input = params.structuredContent as Record<string, unknown> | undefined;
@@ -17,13 +17,6 @@ app.ontoolresult = async (params) => {
     let registration = await registrationReady;
     // Retry an early unsupported result once the host has initialized the app.
     if (!registration.supported) registration = await registerTools(tools);
-    const result = (await tools
-      .find((tool) => tool.name === "set_canvas_size")!
-      .execute(
-        { width: input.width, height: input.height },
-        { signal: new AbortController().signal },
-      )) as { ok?: boolean; error?: string };
-    if (result?.error) throw new Error(result.error);
     document.documentElement.dataset.initialized = "true";
     document.documentElement.dataset.webmcpToolCount = String(
       registration.count,
@@ -37,7 +30,7 @@ app.ontoolresult = async (params) => {
         content: [
           {
             type: "text",
-            text: `Pixel Art Studio is ready. This document registered ${registration.count}/${tools.length} WebMCP tools using document.modelContext. Registration does not prove host discovery. Discover them through the host’s WebMCP integration, then use them on this canvas. Call get_canvas_info, then draw and inspect with get_region_pixels. Keep the same widget; do not call open_studio again to edit it.`,
+            text: `Pixel Art Studio is ready. This document registered ${registration.count}/${tools.length} WebMCP tools using document.modelContext. Registration does not prove host discovery. Discover them through the host’s WebMCP integration, then use them on this canvas. Call get_canvas_info and use WebMCP set_canvas_size for requested dimensions, then draw and inspect with get_region_pixels. Keep the same widget; do not call open_studio again to edit it.`,
           },
         ],
       })

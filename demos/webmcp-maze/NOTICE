@@ -24,10 +24,13 @@ Maze v3 adds the shared app-side tool bridge, a fixed six-tool embedded
 surface, readiness and game-state guards, status text, and host solve/replay tests.
 The standalone maze retains the original state-dependent native tool lifecycle.
 
-Current WebMCP-only ports (Maze v4, Pixel Art v2) remove the legacy app-side
+WebMCP-only ports (Maze v4, Pixel Art v2) remove the legacy app-side
 MCP tools bridge. Input validation and fixed embedded maze registrations remain.
 
 Test-only fixture: modelcontextprotocol/ext-apps PR #798,
 ochafik/ext-apps commit efcc19c377770f64d4844485bb2be73a6c4b813c,
 src/model-context-host.ts copied unchanged. Upstream licensing text is retained
 at tests/fixtures/pr798/LICENSE. This prototype is not shipped in the widgets.
+
+Maze v5 and Pixel Art v3 make MCP loading tools parameterless and remove
+launch-result mutations. Creation, sizing, drawing and gameplay use WebMCP only.

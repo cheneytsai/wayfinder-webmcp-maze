@@ -5,10 +5,9 @@
 import "pixi.js/unsafe-eval";
 import { App } from "@modelcontextprotocol/ext-apps";
 import { createGame } from "./main.ts";
-import { createStartGameTool } from "./webmcp/tools/StartGameTool.ts";
 import "./widget.css";
 
-const app = new App({ name: "Chrome WebMCP Maze", version: "4.0.0" }, {});
+const app = new App({ name: "Chrome WebMCP Maze", version: "5.0.0" }, {});
 const game = await createGame();
 const tools = game.toolRegistry.getTools();
 let initialized = false;
@@ -17,11 +16,6 @@ app.ontoolresult = async (params) => {
   if (initialized || input?.kind !== "maze") return;
   initialized = true;
   try {
-    const result = (await createStartGameTool(game).execute(
-      { rows: input.rows, cols: input.cols },
-      { signal: new AbortController().signal },
-    )) as Record<string, unknown>;
-    if (result.error) throw new Error(String(result.error));
     const html = document.documentElement;
     html.dataset.initialized = "true";
     const count = await game.toolRegistry.ensureNativeTools();
@@ -29,14 +23,14 @@ app.ontoolresult = async (params) => {
     html.dataset.webmcpAvailable = String(!!document.modelContext);
     const status = document.createElement("aside");
     status.id = "maze-tools-status";
-    status.innerHTML = `<span>WebMCP tools: ${count}/${tools.length}</span><span id="maze-last-tool">Maze initialized</span>`;
+    status.innerHTML = `<span>WebMCP tools: ${count}/${tools.length}</span><span id="maze-last-tool">Waiting for WebMCP start_game</span>`;
     document.getElementById("app")!.append(status);
     void app
       .updateModelContext({
         content: [
           {
             type: "text",
-            text: `The maze is ready. This document registered ${count}/${tools.length} WebMCP tools using document.modelContext: start_game, look, move, pickup, drop, and use. Registration does not prove host discovery. Discover them through the host’s WebMCP integration. Call look and move to play in this widget. After escaping, use the app's start_game to replay. Do not call the server's start_game to continue this maze. ${JSON.stringify(result)}`,
+            text: `The maze app is open; no game has started. This document registered ${count}/${tools.length} WebMCP tools using document.modelContext: start_game, look, move, pickup, drop, and use. Registration does not prove host discovery. Discover them through the host’s WebMCP integration. First call WebMCP start_game with the requested rows and cols, then look and move to play in this widget. After escaping, use the app's start_game to replay. The MCP open_maze tool only loads a separate widget and cannot mutate this maze.`,
           },
         ],
       })

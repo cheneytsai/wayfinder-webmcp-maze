@@ -6,58 +6,47 @@ import { describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createMcpServer } from "../../server/mcp.ts";
+import { createPixelMcpServer } from "../../server/pixel.ts";
 
-describe("MCP App launch contract", () => {
-  it("advertises only a launch tool and returns an MCP Apps resource", async () => {
-    const server = createMcpServer(() => "<html>original maze</html>");
-    const client = new Client({ name: "test", version: "1" });
-    const [a, b] = InMemoryTransport.createLinkedPair();
-    await Promise.all([server.connect(a), client.connect(b)]);
-    try {
-      const { tools } = await client.listTools();
-      expect(tools.map((tool) => tool.name)).toEqual(["start_game"]);
-      expect(tools[0]._meta).toMatchObject({
-        ui: { resourceUri: "ui://chrome-webmcp-maze/v4.html" },
-      });
-      const result = await client.callTool({
-        name: "start_game",
-        arguments: { rows: 8, cols: 12 },
-      });
-      expect(result.structuredContent).toEqual({
-        kind: "maze",
-        rows: 8,
-        cols: 12,
-      });
-      const defaults = await client.callTool({
-        name: "start_game",
-        arguments: {},
-      });
-      expect(defaults.structuredContent).toEqual({
-        kind: "maze",
-        rows: 10,
-        cols: 10,
-      });
-      for (const args of [
-        { rows: 0 },
-        { cols: 41 },
-        { rows: 2.5 },
-        { rows: "8" },
-      ]) {
-        expect(
-          (await client.callTool({ name: "start_game", arguments: args }))
-            .isError,
-        ).toBe(true);
+describe("MCP Apps only load widgets", () => {
+  for (const [kind, launch, create, uri] of [
+    ["maze", "open_maze", createMcpServer, "ui://chrome-webmcp-maze/v5.html"],
+    [
+      "pixel-art",
+      "open_studio",
+      createPixelMcpServer,
+      "ui://pixel-art-studio/v4.html",
+    ],
+  ] as const) {
+    it(`${launch} has no mutation parameters or state in its response`, async () => {
+      const server = create(() => "<html>widget</html>");
+      const client = new Client({ name: "test", version: "1" });
+      const [a, b] = InMemoryTransport.createLinkedPair();
+      await Promise.all([server.connect(a), client.connect(b)]);
+      try {
+        const { tools } = await client.listTools();
+        expect(tools.map((tool) => tool.name)).toEqual([launch]);
+        expect(tools[0].inputSchema.properties).toEqual({});
+        expect(tools[0]._meta).toMatchObject({ ui: { resourceUri: uri } });
+        // Even stale clients sending dimensions cannot configure app state.
+        for (const input of [
+          {},
+          { rows: 8, cols: 12, width: 32, height: 24 },
+        ]) {
+          const result = await client.callTool({
+            name: launch,
+            arguments: input,
+          });
+          expect(result.structuredContent).toEqual({ kind });
+        }
+        expect((await client.readResource({ uri })).contents[0]).toMatchObject({
+          mimeType: "text/html;profile=mcp-app",
+          text: "<html>widget</html>",
+        });
+      } finally {
+        await client.close();
+        await server.close();
       }
-      const resource = await client.readResource({
-        uri: "ui://chrome-webmcp-maze/v4.html",
-      });
-      expect(resource.contents[0]).toMatchObject({
-        mimeType: "text/html;profile=mcp-app",
-        text: "<html>original maze</html>",
-      });
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
+    });
+  }
 });

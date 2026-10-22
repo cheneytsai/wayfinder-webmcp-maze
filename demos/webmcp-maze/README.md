@@ -4,14 +4,15 @@ Two original [GoogleChromeLabs WebMCP demos](https://github.com/GoogleChromeLabs
 
 | Installed plugin | Endpoint | Current version | WebMCP tools |
 | --- | --- | --- | --- |
-| Chrome Maze WebMCP | `/mcp` | 4.0.0 | Six fixed tools: `start_game`, `look`, `move`, `pickup`, `drop`, `use` |
-| Chrome Pixel Art Studio | `/pixel/mcp` | 2.0.0 | Original 25 drawing, palette, layer, history, and inspection tools |
+| Chrome Maze WebMCP | `/mcp` | 5.0.0 | Six fixed tools: `start_game`, `look`, `move`, `pickup`, `drop`, `use` |
+| Chrome Pixel Art Studio | `/pixel/mcp` | 3.0.0 | Original 25 drawing, palette, layer, history, and inspection tools |
 
 ## How it works
 
-The MCP server exposes one launch tool per endpoint: `start_game({rows, cols})` for the maze and `open_studio({width, height})` for Pixel Art. Each returns a self-contained `text/html;profile=mcp-app` resource. The MCP Apps result initializes the requested dimensions. Maze dimensions are integers from 2 to 40; pixel dimensions are integers from 8 to 256.
+The MCP server exposes one parameterless loading tool per endpoint: `open_maze({})` and `open_studio({})`. Each only returns a self-contained `text/html;profile=mcp-app` resource. MCP arguments and tool results never start a game, set dimensions, draw, or invoke a WebMCP handler. The maze opens on its intro screen. Pixel Art opens with the original empty 64×64 canvas and no tool activity.
 
-Subsequent operations use tools registered on the widget's `document.modelContext`. Both widgets pass empty app capabilities to `App` and do not use `app.registerTool`, app-side `tools/list`, or app-side `tools/call`. The previous legacy app-tool bridge has been removed. All state stays in the same widget and canvas, with no manual editing/start controls.
+All mutations go through the iframe's WebMCP tools. Call WebMCP `start_game({rows, cols})` to generate a maze (integers from 2 to 40), or `set_canvas_size({width, height})` to size the canvas (integers from 8 to 256).
+Operations use tools registered on the widget's `document.modelContext`. Both widgets pass empty app capabilities to `App` and do not use `app.registerTool`, app-side `tools/list`, or app-side `tools/call`. The previous legacy app-tool bridge has been removed. All state stays in the same widget and canvas, with no manual editing/start controls.
 
 The embedded maze keeps its six guarded tools registered through winning and replay. App-side WebMCP `start_game` permits replay after escaping; it refuses to replace an active maze. The standalone Chrome maze retains its original state-dependent native tool lifecycle. Pixel Art keeps all 25 tools registered. Inputs are validated inside the handlers rather than relying on the browser or host to validate them.
 
@@ -65,7 +66,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The suite covers MCP launch discovery/resources and dimension validation; native WebMCP gameplay and drawing; no manual controls; strict CSP; fixed tool sets; canvas identity; and replay. Cross-origin host tests run the PR's unmodified relay in a sandbox proxy with `allow="tools"`, against both native WebMCP and its host polyfill. These tests discover tools through the reserved sandbox protocol, draw/inspect/undo/resize Pixel Art, and solve/replay the maze. They also assert the legacy app-tool protocol is absent. They verify compatibility with that relay fixture, not ChatGPT's private host implementation.
+The suite covers parameterless MCP loading/resources and ignored stale sizing fields; WebMCP dimension validation; native WebMCP gameplay and drawing; no manual controls; strict CSP; fixed tool sets; canvas identity; and replay. Cross-origin host tests run the PR's unmodified relay in a sandbox proxy with `allow="tools"`, against both native WebMCP and its host polyfill. These tests discover tools through the reserved sandbox protocol, draw/inspect/undo/resize Pixel Art, and solve/replay the maze. They also assert the legacy app-tool protocol is absent. They verify compatibility with that relay fixture, not ChatGPT's private host implementation.
 
 For standalone development, use `npm run dev` (maze, port 8788) or `npm run dev:pixel` (Pixel Art, port 8790).
 

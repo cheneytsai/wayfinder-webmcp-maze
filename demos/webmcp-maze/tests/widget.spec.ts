@@ -56,6 +56,14 @@ for (const built of [false, true]) {
     );
     expect(await frame.locator("button,input,form").count()).toBe(0);
     const canvas = await frame.locator("canvas").elementHandle();
+    // MCP results, including stale sizing fields above, must leave the intro intact.
+    await expect(frame.locator("#intro-overlay")).toBeVisible();
+    await frame.evaluate(async () => {
+      const tool = (await document.modelContext!.getTools()).find(
+        (t) => t.name === "start_game",
+      )!;
+      return document.modelContext!.executeTool(tool, { rows: 3, cols: 4 });
+    });
     const view = await frame.evaluate(async () => {
       const tool = (await document.modelContext!.getTools()).find(
         (tool) => tool.name === "look",
