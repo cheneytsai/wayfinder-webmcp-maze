@@ -5,9 +5,11 @@
 
 /** Wraps tool specs with user-visible feedback and registers them with WebMCP. */
 import { checkEnums } from "./schema";
+import { createToolInputParser } from "../../../shared/webmcp-input";
 import type { ChangeThumbs, ToolContext, ToolOutcome, ToolSpec } from "./types";
 
-const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+const errorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
 
 /**
  * Turn a spec into a WebMCP tool. Every call is logged in the activity feed, painted changes
@@ -16,7 +18,11 @@ const errorMessage = (error: unknown) => (error instanceof Error ? error.message
  */
 function wrap(spec: ToolSpec, ctx: ToolContext): WebMCP.ModelContextTool {
   const { studio, view, feed } = ctx;
-  const present = (outcome: ToolOutcome, before: Uint32Array): ChangeThumbs | undefined => {
+  const parseInput = createToolInputParser(spec.inputSchema);
+  const present = (
+    outcome: ToolOutcome,
+    before: Uint32Array,
+  ): ChangeThumbs | undefined => {
     if (!outcome.changes?.length) {
       const [fx, fy] = outcome.focus ?? [studio.w / 2, studio.h / 2];
       view.pointAgent(fx, fy, spec.name);
@@ -57,6 +63,7 @@ function wrap(spec: ToolSpec, ctx: ToolContext): WebMCP.ModelContextTool {
       try {
         entry = feed.start(spec.name, input);
         signal.throwIfAborted();
+        input = parseInput(input);
         checkEnums(spec.inputSchema, input);
         const before = studio.composite.slice();
         const outcome = await spec.execute(input, { signal });
@@ -75,8 +82,10 @@ function wrap(spec: ToolSpec, ctx: ToolContext): WebMCP.ModelContextTool {
   };
 }
 
-export const wrapTools = (specs: ToolSpec[], ctx: ToolContext): WebMCP.ModelContextTool[] =>
-  specs.map((spec) => wrap(spec, ctx));
+export const wrapTools = (
+  specs: ToolSpec[],
+  ctx: ToolContext,
+): WebMCP.ModelContextTool[] => specs.map((spec) => wrap(spec, ctx));
 
 export interface Registration {
   supported: boolean;
@@ -86,16 +95,24 @@ export interface Registration {
 }
 
 /** Feature-detect `document.modelContext` and register each tool with a shared AbortSignal. */
-export async function registerTools(tools: WebMCP.ModelContextTool[]): Promise<Registration> {
+export async function registerTools(
+  tools: WebMCP.ModelContextTool[],
+): Promise<Registration> {
   const controller = new AbortController();
   const modelContext = document.modelContext;
   if (!modelContext) return { supported: false, count: 0, controller };
   const results = await Promise.allSettled(
-    tools.map((tool) => modelContext.registerTool(tool, { signal: controller.signal })),
+    tools.map((tool) =>
+      modelContext.registerTool(tool, { signal: controller.signal }),
+    ),
   );
   results.forEach((result, index) => {
     if (result.status === "rejected")
-      console.warn("[pixel-art-studio] registerTool failed:", tools[index].name, result.reason);
+      console.warn(
+        "[pixel-art-studio] registerTool failed:",
+        tools[index].name,
+        result.reason,
+      );
   });
   return {
     supported: true,

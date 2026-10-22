@@ -39,11 +39,15 @@ export class ToolRegistry {
   private toolMap: Map<string, WebMCP.ModelContextTool> = new Map();
 
   private toolController: AbortController | null = null;
+  private registration: Promise<number> = Promise.resolve(0);
 
-  private readonly fixedAppTools = document.documentElement.hasAttribute("data-mcp-app");
+  private readonly fixedAppTools =
+    document.documentElement.hasAttribute("data-mcp-app");
 
-  /** The exact handlers shared by native WebMCP and the MCP Apps bridge. */
-  getTools(): WebMCP.ModelContextTool[] { return [...this.toolMap.values()]; }
+  /** The fixed handlers exposed through document.modelContext in embedded apps. */
+  getTools(): WebMCP.ModelContextTool[] {
+    return [...this.toolMap.values()];
+  }
 
   /**
    * @param game - The game orchestrator instance.
@@ -106,24 +110,37 @@ export class ToolRegistry {
       if (this.toolMap.size) return;
       tools = createMazeAppTools(this.game);
     }
-    if (this.supported) {
-      this.toolController?.abort();
-      this.toolController = new AbortController();
-      for (const tool of tools) {
-        const signal = this.toolController.signal;
-        // Native registration is asynchronous. A rapid MCP Apps initialization can
-        // legitimately abort intro registrations before the browser finishes them.
-        void Promise.resolve(
-          document.modelContext!.registerTool(tool, { signal }),
-        ).catch((error) => {
-          if (!signal.aborted) console.error("Native maze tool registration failed", tool.name, error);
-        });
-      }
-    }
     this.toolMap.clear();
     for (const tool of tools) {
       this.toolMap.set(tool.name, tool);
     }
+    this.beginNativeRegistration();
+  }
+
+  private beginNativeRegistration(): void {
+    this.supported = !!document.modelContext;
+    if (!this.supported) return;
+    this.toolController?.abort();
+    this.toolController = new AbortController();
+    const signal = this.toolController.signal;
+    this.registration = Promise.allSettled(
+      this.getTools().map((tool) =>
+        document.modelContext!.registerTool(tool, { signal }),
+      ),
+    ).then((results) => {
+      for (const result of results) {
+        if (result.status === "rejected" && !signal.aborted)
+          console.error("Native maze registration failed", result.reason);
+      }
+      return results.filter((result) => result.status === "fulfilled").length;
+    });
+  }
+
+  /** Retry once if the host provided WebMCP after the initial module load. */
+  async ensureNativeTools(): Promise<number> {
+    if (!this.supported && document.modelContext)
+      this.beginNativeRegistration();
+    return this.registration;
   }
 
   /**
