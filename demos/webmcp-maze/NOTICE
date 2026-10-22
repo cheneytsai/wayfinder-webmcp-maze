@@ -16,3 +16,6 @@ Copyright 2026 Google LLC. Licensed under Apache-2.0.
 Modifications: MCP Apps launch wrapper and endpoint, compact widget layout,
 manual artwork controls disabled, bundled Latin fonts, native iframe tests.
 Original drawing tools and handlers are preserved.
+
+Pixel Art Studio v1.1 adds app-side MCP Apps tool discovery and calls, sharing
+the original WebMCP handlers, schema validation, readiness gating, and bridge tests.

@@ -1,6 +1,6 @@
 # Chrome Pixel Art Studio — ChatGPT MCP App
 
-The original [GoogleChromeLabs Pixel Art Studio](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/pixel-art-studio), packaged as a plain TypeScript MCP App. The server exposes only `open_studio({width, height})`; all 25 drawing, palette, layer, inspection, and undo tools register inside the iframe once at startup. Edits keep the same canvas. The widget preserves the original canvas, fonts, and activity feed, with manual editing controls and keyboard mutations disabled.
+The original [GoogleChromeLabs Pixel Art Studio](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/pixel-art-studio), packaged as a plain TypeScript MCP App. The server exposes only `open_studio({width, height})`; all 25 drawing, palette, layer, inspection, and undo tools are exposed by the iframe through the MCP Apps tools bridge. Native WebMCP registration is also preserved. Both routes execute the same handlers against the same canvas. Edits keep the same canvas. The widget preserves the original canvas, fonts, and activity feed, with manual editing controls and keyboard mutations disabled.
 
 ## Try Pixel Art Studio locally
 
@@ -14,13 +14,15 @@ Then:
 
 > Add a yellow moon to the same canvas, undo that change, then redo it.
 
-If needed, expand the widget with **Open app in tab** so Desktop can discover its iframe tools. The first call should be `open_studio`; later calls should be native tools such as `get_canvas_info`, `draw_svg`, `draw_rect`, `get_region_pixels`, and `undo_pixel_art_action`. The activity feed records those calls. Reopening the studio creates a new canvas and is not needed for edits. Artwork is ephemeral and lives in the widget.
+The widget advertises app tool capabilities during initialization and handles host tool discovery and calls. Expanding the app is not an implementation requirement of this bridge. The first call should be `open_studio`; later calls should be iframe app tools such as `get_canvas_info`, `draw_svg`, `draw_rect`, `get_region_pixels`, and `undo_pixel_art_action`. The activity feed records those calls. Reopening the studio creates a new canvas and is not needed for edits. Artwork is ephemeral and lives in the widget.
 
 ## Pixel verification
 
-The production bundle passes a real native WebMCP test inside an MCP Apps host fixture at 400px and 800px widths, including drawing, pixel inspection, undo/redo, resize, fixed tool names, and canvas identity under a strict CSP. The host messaging is simulated; WebMCP is native Chromium. These tests do not establish a live ChatGPT Desktop conversation result.
+The production bundle passes native WebMCP and MCP Apps host-message tests at 400px and 800px widths, including tools/list, tools/call, drawing, pixel inspection, undo/redo, resize, fixed tool names, and canvas identity under a strict CSP. An additional test disables native WebMCP and verifies bridge-based drawing and undo. SDK AppBridge tests verify discovery, initialization gating, input validation, and shared-handler execution. The browser host is a fixture; these tests do not establish a live ChatGPT conversation result.
 
-The complete project currently passes **103 unit tests and 11 browser tests**, plus both application builds. Live Desktop discovery remains a separate verification step after connecting the plugin.
+The complete project currently passes **104 unit tests and 12 browser tests**, plus both application builds. Live ChatGPT discovery remains a separate verification step. The earlier v1 widget lacked app-side MCP Apps tool capabilities and handlers; v1.1 adds them, retaining native WebMCP.
+
+Live web retest (October 22, 2026): the v1.1 widget initializes and reports `App tools: 25 · Native WebMCP: 0`. ChatGPT receives its context update, but the web conversation still does not expose the app tools to the agent. No drawing call succeeded there. The bridge is verified in SDK/iframe host tests; ChatGPT Desktop remains unverified. This change is not proof of native WebMCP support in ChatGPT.
 
 The original maze implementation and setup are retained below.
 

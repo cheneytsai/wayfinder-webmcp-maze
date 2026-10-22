@@ -13,3 +13,5 @@ html[data-mcp-app] .feed-card { height: 140px; border-radius: 0; }
 html[data-mcp-app] .canvas-wrap { pointer-events: none; }
 html[data-mcp-app] .blank .small { max-width: 250px; margin-inline: auto; }
 html[data-mcp-app] .stage > [role=alert] { position: absolute; inset: 30px; color: #ffb6af; background: #15141f; padding: 20px; z-index: 20; }
+
+.tool-status { margin-left: auto; padding-right: 12px; font: 10px monospace; white-space: nowrap; color: #777; }
