@@ -4,10 +4,10 @@
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const RESOURCE = "ui://chrome-webmcp-maze/v5.html";
+const RESOURCE = "ui://chrome-webmcp-maze/v6.html";
 export function createMcpServer(widgetHtml: () => string, origin?: string) {
   const mcp = new McpServer(
-    { name: "Chrome WebMCP Maze", version: "5.0.0" },
+    { name: "Chrome WebMCP Maze", version: "5.0.1" },
     {
       instructions:
         "Open the app with open_maze. This MCP tool only loads the widget; it cannot create or configure a maze. Use the iframe WebMCP start_game with rows and cols to create a maze, then discover and use the live widget's WebMCP look, move, pickup, drop and use tools to play. The iframe registers six fixed tools with document.modelContext, including start_game for replay. The host must discover and relay them. Keep the same widget during gameplay. There are no manual game controls.",

@@ -10,7 +10,7 @@ import { createPixelMcpServer } from "../../server/pixel.ts";
 
 describe("MCP Apps only load widgets", () => {
   for (const [kind, launch, create, uri] of [
-    ["maze", "open_maze", createMcpServer, "ui://chrome-webmcp-maze/v5.html"],
+    ["maze", "open_maze", createMcpServer, "ui://chrome-webmcp-maze/v6.html"],
     [
       "pixel-art",
       "open_studio",

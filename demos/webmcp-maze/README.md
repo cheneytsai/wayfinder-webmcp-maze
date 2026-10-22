@@ -4,7 +4,7 @@ Two original [GoogleChromeLabs WebMCP demos](https://github.com/GoogleChromeLabs
 
 | Installed plugin | Endpoint | Current version | WebMCP tools |
 | --- | --- | --- | --- |
-| Chrome Maze WebMCP | `/mcp` | 5.0.0 | Six fixed tools: `start_game`, `look`, `move`, `pickup`, `drop`, `use` |
+| Chrome Maze WebMCP | `/mcp` | 5.0.1 | Six fixed tools: `start_game`, `look`, `move`, `pickup`, `drop`, `use` |
 | Chrome Pixel Art Studio | `/pixel/mcp` | 3.0.0 | Original 25 drawing, palette, layer, history, and inspection tools |
 
 ## How it works
@@ -23,6 +23,18 @@ The intended WebMCP integration is described in [ext-apps PR #798](https://githu
 The production widgets keep the released ext-apps 2.0.3 SDK for the UI handshake. The experimental PR relay and polyfill are vendored **only as test fixtures**, pinned to commit `efcc19c377770f64d4844485bb2be73a6c4b813c`. Installing a different SDK in this project cannot update ChatGPT's host.
 
 The widget status reports registrations as `WebMCP tools: 6/6` or `25/25`. Registration does **not** prove that ChatGPT has discovered or called them. Live ChatGPT Desktop agent calls remain unverified. Earlier web tests could open widgets but could not call their tools. Do not treat an opening call or a registration count as an end-to-end success.
+
+## Inspecting native WebMCP in DevTools
+
+Select the **widget iframe** in DevTools' Console execution-context dropdown, rather than the ChatGPT parent page. Then run:
+
+```js
+typeof document.modelContext
+Function.prototype.toString.call(document.modelContext?.registerTool)
+(await document.modelContext.getTools()).map(tool => tool.name)
+```
+
+In a browser with native WebMCP enabled, registration is a native function and the last expression lists six maze tools or 25 Pixel Art tools. If the API is undefined, that frame's browser does not expose WebMCP; these apps do not install a fallback. If registration fails, check the Console for registration errors and the host iframe's `tools` Permissions Policy delegation. App code cannot grant itself that host permission. There is no `window.gameTools` shortcut in either MCP App. The standalone maze keeps the upstream eval helper only with an explicit `?eval_tool` opt-in.
 
 ## Local setup
 

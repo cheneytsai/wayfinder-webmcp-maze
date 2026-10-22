@@ -127,6 +127,15 @@ async function mount(page: Page, kind: "maze" | "pixel", polyfill: boolean) {
         ],
     ),
   ).toBe(polyfill);
+  // App code must not install an alternate executor or replace the native API.
+  expect(await frame.evaluate(() => "gameTools" in window)).toBe(false);
+  if (!polyfill) {
+    expect(
+      await frame.evaluate(() =>
+        Function.prototype.toString.call(document.modelContext!.registerTool),
+      ),
+    ).toContain("[native code]");
+  }
   const request = (method: string, params: Record<string, unknown> = {}) =>
     page.evaluate(
       ({ method, params }) => (window as any).hostRequest(method, params),

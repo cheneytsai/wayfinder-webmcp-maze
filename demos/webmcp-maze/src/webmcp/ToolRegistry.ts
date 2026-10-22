@@ -22,8 +22,8 @@ import { createEvalTool } from "./tools/EvalTool.ts";
  * - **Gameplay**: `move`, `look`, `pickup`, `drop`, `use`
  *   and optionally `eval_code` when the `?eval_tool` URL parameter is present.
  *
- * A `window.gameTools.executeTool(name, args)` helper is always kept in sync
- * with the current tool set so that eval'd code can invoke tools by name.
+ * The standalone opt-in eval tool has a private execution helper. Embedded
+ * apps never install that helper; their tool surface is document.modelContext.
  */
 export class ToolRegistry {
   /** Reference to the game orchestrator. */
@@ -34,7 +34,7 @@ export class ToolRegistry {
 
   /**
    * Live map of currently registered tools, keyed by tool name.
-   * Referenced by `window.gameTools.executeTool` at call time.
+   * Used to register the native WebMCP tool surface.
    */
   private toolMap: Map<string, WebMCP.ModelContextTool> = new Map();
 
@@ -60,7 +60,14 @@ export class ToolRegistry {
       console.warn("WebMCP (modelContext) is not available in this browser.");
     }
 
-    this.installGameTools();
+    // Retain the upstream eval experiment only when explicitly enabled on the
+    // standalone demo. Never expose a parallel execution hook in MCP Apps.
+    if (
+      !this.fixedAppTools &&
+      new URLSearchParams(location.search).has("eval_tool")
+    ) {
+      this.installGameTools();
+    }
   }
 
   /**
@@ -102,7 +109,7 @@ export class ToolRegistry {
 
   /**
    * Unregisters all current tools then registers the new batch.
-   * Keeps `toolMap` in sync so `window.gameTools.executeTool` stays current.
+   * Keeps the current native tool definitions in sync.
    * @param tools - The tools to register.
    */
   private provideTools(tools: WebMCP.ModelContextTool[]): void {
